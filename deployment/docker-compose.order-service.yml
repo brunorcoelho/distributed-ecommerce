@@ -1,0 +1,51 @@
+# Order Service Machine Configuration
+# Machine 2: Order Service (Spring Boot) + PostgreSQL
+
+version: '3.8'
+
+services:
+  postgres-orders:
+    image: postgres:15-alpine
+    container_name: postgres-orders
+    environment:
+      - POSTGRES_DB=order_service_db
+      - POSTGRES_USER=order_user
+      - POSTGRES_PASSWORD=order_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_orders_data:/var/lib/postgresql/data
+    restart: unless-stopped
+    networks:
+      - ecommerce-network
+
+  order-service:
+    build:
+      context: ../order-service
+      dockerfile: Dockerfile
+    container_name: order-service
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-orders:5432/order_service_db
+      - SPRING_DATASOURCE_USERNAME=order_user
+      - SPRING_DATASOURCE_PASSWORD=order_password
+      - INVENTORY_SERVICE_URL=http://192.168.1.102:8081
+      - CORS_ALLOWED_ORIGINS=http://192.168.1.101:3000
+    depends_on:
+      - postgres-orders
+    restart: unless-stopped
+    networks:
+      - ecommerce-network
+
+volumes:
+  postgres_orders_data:
+
+networks:
+  ecommerce-network:
+    driver: bridge
+
+# To deploy:
+# 1. Update INVENTORY_SERVICE_URL with the actual IP of Inventory Service machine
+# 2. Update CORS_ALLOWED_ORIGINS with the actual IP of Frontend machine
+# 3. Run: docker-compose up -d

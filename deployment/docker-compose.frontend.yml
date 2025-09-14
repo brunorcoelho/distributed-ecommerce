@@ -1,0 +1,26 @@
+# Frontend Machine Configuration
+# Machine 1: Frontend Service (React.js)
+
+version: '3.8'
+
+services:
+  frontend:
+    build:
+      context: ../frontend
+      dockerfile: Dockerfile
+    container_name: ecommerce-frontend
+    ports:
+      - "3000:80"
+    environment:
+      - REACT_APP_ORDER_SERVICE_URL=http://192.168.1.100:8080
+    restart: unless-stopped
+    networks:
+      - ecommerce-network
+
+networks:
+  ecommerce-network:
+    driver: bridge
+
+# To deploy:
+# 1. Update REACT_APP_ORDER_SERVICE_URL with the actual IP of Order Service machine
+# 2. Run: docker-compose up -d

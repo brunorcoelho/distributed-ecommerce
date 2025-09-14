@@ -1,0 +1,47 @@
+# Inventory Service Machine Configuration
+# Machine 3: Inventory Service (Spring Boot) + PostgreSQL
+
+version: '3.8'
+
+services:
+  postgres-inventory:
+    image: postgres:15-alpine
+    container_name: postgres-inventory
+    environment:
+      - POSTGRES_DB=inventory_service_db
+      - POSTGRES_USER=inventory_user
+      - POSTGRES_PASSWORD=inventory_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_inventory_data:/var/lib/postgresql/data
+    restart: unless-stopped
+    networks:
+      - ecommerce-network
+
+  inventory-service:
+    build:
+      context: ../inventory-service
+      dockerfile: Dockerfile
+    container_name: inventory-service
+    ports:
+      - "8081:8081"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-inventory:5432/inventory_service_db
+      - SPRING_DATASOURCE_USERNAME=inventory_user
+      - SPRING_DATASOURCE_PASSWORD=inventory_password
+    depends_on:
+      - postgres-inventory
+    restart: unless-stopped
+    networks:
+      - ecommerce-network
+
+volumes:
+  postgres_inventory_data:
+
+networks:
+  ecommerce-network:
+    driver: bridge
+
+# To deploy:
+# Run: docker-compose up -d
