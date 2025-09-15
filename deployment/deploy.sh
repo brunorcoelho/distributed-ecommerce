@@ -29,6 +29,24 @@ print_header() {
     echo -e "${BLUE}=== $1 ===${NC}"
 }
 
+# Function to get current machine's IP address
+get_machine_ip() {
+    # Try to get IP from common network interfaces
+    local IP=$(ip route get 8.8.8.8 2>/dev/null | grep -oP 'src \K[^ ]+' | head -1)
+    
+    if [[ -z "$IP" ]]; then
+        # Fallback method
+        IP=$(hostname -I 2>/dev/null | awk '{print $1}')
+    fi
+    
+    if [[ -z "$IP" ]]; then
+        # Another fallback
+        IP=$(ip addr show | grep -oP '192\.168\.\d+\.\d+' | head -1)
+    fi
+    
+    echo "$IP"
+}
+
 # Function to check if Docker is installed
 check_docker() {
     if ! command -v docker &> /dev/null; then
@@ -89,17 +107,21 @@ EOF
 # Function to deploy frontend
 deploy_frontend() {
     local order_service_ip=$1
+    local inventory_service_ip=$2
     
     print_header "Deploying Frontend Service"
     
     cd ../frontend
     
-    # Create environment file
+    # Create environment file with both service URLs
     cat << EOF > .env
-REACT_APP_ORDER_SERVICE_URL=http://${order_service_ip}:8080
+VITE_ORDER_SERVICE_URL=http://${order_service_ip}:8080
+VITE_INVENTORY_SERVICE_URL=http://${inventory_service_ip}:8081
 EOF
     
-    print_status "Created .env file with ORDER_SERVICE_URL=http://${order_service_ip}:8080"
+    print_status "Created .env file:"
+    print_status "  Order Service: http://${order_service_ip}:8080"
+    print_status "  Inventory Service: http://${inventory_service_ip}:8081"
     
     # Build Docker image
     print_status "Building frontend Docker image..."
@@ -109,14 +131,9 @@ EOF
     docker stop ecommerce-frontend 2>/dev/null || true
     docker rm ecommerce-frontend 2>/dev/null || true
     
-    # Run container
-    print_status "Starting frontend container..."
-    docker run -d \
-        --name ecommerce-frontend \
-        --restart unless-stopped \
-        -p 3000:80 \
-        -e REACT_APP_ORDER_SERVICE_URL=http://${order_service_ip}:8080 \
-        ecommerce-frontend
+    # Use docker-compose for more reliable deployment
+    print_status "Starting frontend using docker-compose..."
+    docker-compose -f ../deployment/docker-compose.local.yml up --build frontend -d
     
     print_status "Frontend deployed successfully on port 3000"
     print_status "Access the application at: http://localhost:3000"
@@ -124,34 +141,13 @@ EOF
 
 # Function to deploy order service
 deploy_order_service() {
-    local db_host=$1
-    local inventory_service_ip=$2
-    local frontend_ip=$3
-    
     print_header "Deploying Order Service"
     
-    cd ../order-service
+    cd ..
     
-    # Build Docker image
-    print_status "Building order service Docker image..."
-    docker build -t order-service .
-    
-    # Stop existing container if running
-    docker stop order-service 2>/dev/null || true
-    docker rm order-service 2>/dev/null || true
-    
-    # Run container
-    print_status "Starting order service container..."
-    docker run -d \
-        --name order-service \
-        --restart unless-stopped \
-        -p 8080:8080 \
-        -e SPRING_DATASOURCE_URL=jdbc:postgresql://${db_host}:5432/order_service_db \
-        -e SPRING_DATASOURCE_USERNAME=order_user \
-        -e SPRING_DATASOURCE_PASSWORD=order_password \
-        -e INVENTORY_SERVICE_URL=http://${inventory_service_ip}:8081 \
-        -e CORS_ALLOWED_ORIGINS=http://${frontend_ip}:3000 \
-        order-service
+    # Use docker-compose for deployment with database
+    print_status "Starting order service with database using docker-compose..."
+    docker-compose -f ../deployment/docker-compose.local.yml up --build order-service order-db -d
     
     print_status "Order service deployed successfully on port 8080"
     print_status "Health check: curl http://localhost:8080/api/orders/health"
@@ -159,30 +155,13 @@ deploy_order_service() {
 
 # Function to deploy inventory service
 deploy_inventory_service() {
-    local db_host=$1
-    
     print_header "Deploying Inventory Service"
     
-    cd ../inventory-service
+    cd ..
     
-    # Build Docker image
-    print_status "Building inventory service Docker image..."
-    docker build -t inventory-service .
-    
-    # Stop existing container if running
-    docker stop inventory-service 2>/dev/null || true
-    docker rm inventory-service 2>/dev/null || true
-    
-    # Run container
-    print_status "Starting inventory service container..."
-    docker run -d \
-        --name inventory-service \
-        --restart unless-stopped \
-        -p 8081:8081 \
-        -e SPRING_DATASOURCE_URL=jdbc:postgresql://${db_host}:5432/inventory_service_db \
-        -e SPRING_DATASOURCE_USERNAME=inventory_user \
-        -e SPRING_DATASOURCE_PASSWORD=inventory_password \
-        inventory-service
+    # Use docker-compose for deployment with database
+    print_status "Starting inventory service with database using docker-compose..."
+    docker-compose -f ../deployment/docker-compose.local.yml up --build inventory-service inventory-db -d
     
     print_status "Inventory service deployed successfully on port 8081"
     print_status "Health check: curl http://localhost:8081/api/inventory/health"
@@ -194,28 +173,20 @@ main() {
     
     case $service_type in
         "frontend")
-            if [ -z "$2" ]; then
-                print_error "Usage: $0 frontend <ORDER_SERVICE_IP>"
+            if [ -z "$2" ] || [ -z "$3" ]; then
+                print_error "Usage: $0 frontend <ORDER_SERVICE_IP> <INVENTORY_SERVICE_IP>"
                 exit 1
             fi
             check_docker
-            deploy_frontend $2
+            deploy_frontend $2 $3
             ;;
         "order-service")
-            if [ -z "$2" ] || [ -z "$3" ] || [ -z "$4" ]; then
-                print_error "Usage: $0 order-service <DB_HOST> <INVENTORY_SERVICE_IP> <FRONTEND_IP>"
-                exit 1
-            fi
             check_docker
-            deploy_order_service $2 $3 $4
+            deploy_order_service
             ;;
         "inventory-service")
-            if [ -z "$2" ]; then
-                print_error "Usage: $0 inventory-service <DB_HOST>"
-                exit 1
-            fi
             check_docker
-            deploy_inventory_service $2
+            deploy_inventory_service
             ;;
         "setup-db")
             if [ -z "$2" ]; then
@@ -232,23 +203,48 @@ main() {
                 exit 1
             fi
             ;;
+        "ip"|"get-ip")
+            MACHINE_IP=$(get_machine_ip)
+            print_status "Current machine IP address: $MACHINE_IP"
+            print_status "Use this IP when configuring other machines"
+            ;;
+        "all-services")
+            if [ -z "$2" ] || [ -z "$3" ]; then
+                print_error "Usage: $0 all-services <ORDER_SERVICE_IP> <INVENTORY_SERVICE_IP>"
+                print_error "This will deploy frontend pointing to the specified backend services"
+                exit 1
+            fi
+            check_docker
+            deploy_frontend $2 $3
+            deploy_order_service
+            deploy_inventory_service
+            ;;
         "help"|"-h"|"--help")
             print_header "Distributed E-commerce Deployment Script"
             echo ""
             echo "Usage: $0 <service-type> [options]"
             echo ""
             echo "Service types:"
-            echo "  frontend <ORDER_SERVICE_IP>                    - Deploy frontend service"
-            echo "  order-service <DB_HOST> <INVENTORY_IP> <FRONTEND_IP> - Deploy order service"
-            echo "  inventory-service <DB_HOST>                    - Deploy inventory service"
-            echo "  setup-db <SERVICE_NAME>                       - Generate database setup script"
-            echo "  help                                          - Show this help message"
+            echo "  frontend <ORDER_SERVICE_IP> <INVENTORY_SERVICE_IP>  - Deploy frontend service"
+            echo "  order-service                                       - Deploy order service with database"
+            echo "  inventory-service                                   - Deploy inventory service with database"
+            echo "  all-services <ORDER_IP> <INVENTORY_IP>              - Deploy all services (for single-machine test)"
+            echo "  ip                                                  - Show current machine IP address"
+            echo "  setup-db <SERVICE_NAME>                            - Generate database setup script"
+            echo "  help                                               - Show this help message"
             echo ""
-            echo "Examples:"
-            echo "  $0 frontend 192.168.1.100"
-            echo "  $0 order-service 192.168.1.100 192.168.1.102 192.168.1.101"
-            echo "  $0 inventory-service 192.168.1.100"
-            echo "  $0 setup-db order-service"
+            echo "Multi-machine deployment examples:"
+            echo "  # On frontend machine (192.168.207.157):"
+            echo "  $0 frontend 192.168.207.154 192.168.207.156"
+            echo ""
+            echo "  # On order service machine (192.168.207.154):"
+            echo "  $0 order-service"
+            echo ""
+            echo "  # On inventory service machine (192.168.207.156):"
+            echo "  $0 inventory-service"
+            echo ""
+            echo "  # Get current machine IP:"
+            echo "  $0 ip"
             echo ""
             ;;
         *)
