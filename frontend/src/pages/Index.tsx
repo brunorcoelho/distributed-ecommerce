@@ -13,8 +13,8 @@ import { useToast } from "@/hooks/use-toast";
 const healthCheck = async () => {
   try {
     const [orderResponse, inventoryResponse] = await Promise.allSettled([
-      fetch('http://localhost:8080/api/orders/health'),
-      fetch('http://localhost:8081/api/inventory/health')
+      fetch(`${import.meta.env.VITE_ORDER_SERVICE_URL}/api/orders/health`),
+      fetch(`${import.meta.env.VITE_INVENTORY_SERVICE_URL}/api/inventory/health`)
     ]);
 
     return {
@@ -35,7 +35,7 @@ const healthCheck = async () => {
 const inventoryApi = {
   getProducts: async (): Promise<Product[]> => {
     try {
-      const response = await fetch('http://localhost:8081/api/inventory/products');
+      const response = await fetch(`${import.meta.env.VITE_INVENTORY_SERVICE_URL}/api/inventory/products`);
       if (!response.ok) throw new Error('Network response was not ok');
       const data = await response.json();
       return data.map((apiProduct: any) => ({
@@ -57,7 +57,7 @@ const inventoryApi = {
 const orderApi = {
   createOrder: async (orderData: ApiOrderRequest) => {
     try {
-      const response = await fetch('http://localhost:8080/api/orders', {
+      const response = await fetch(`${import.meta.env.VITE_ORDER_SERVICE_URL}/api/orders`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
