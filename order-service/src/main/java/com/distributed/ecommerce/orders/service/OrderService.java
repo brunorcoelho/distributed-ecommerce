@@ -67,8 +67,17 @@ public class OrderService {
             InventoryReservationResponse reservationResponse = inventoryService.reserveInventory(reservationRequest);
             
             if (reservationResponse.isSuccess()) {
-                order.approve();
-                logger.info("Order {} approved - inventory reserved successfully", order.getId());
+                // Confirm the reservation to permanently reduce inventory
+                boolean confirmed = inventoryService.confirmInventoryReservation(order.getId());
+                if (confirmed) {
+                    order.approve();
+                    logger.info("Order {} approved - inventory reserved and confirmed successfully", order.getId());
+                } else {
+                    // If confirmation fails, release the reservation and cancel the order
+                    inventoryService.releaseInventoryReservation(order.getId());
+                    order.cancel();
+                    logger.warn("Order {} cancelled - inventory confirmation failed", order.getId());
+                }
             } else {
                 order.cancel();
                 logger.warn("Order {} cancelled - inventory reservation failed: {}", 

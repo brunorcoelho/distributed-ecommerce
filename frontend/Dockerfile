@@ -12,15 +12,17 @@ RUN npm install
 # Copy source code
 COPY . .
 
-# Set environment variable for production build
+# Set environment variables for build
 ENV NODE_ENV=production
+ENV VITE_INVENTORY_SERVICE_URL=http://localhost:8081
+ENV VITE_ORDER_SERVICE_URL=http://localhost:8080
 
 # Build the application
 RUN npm run build
 
-# List contents to verify build
-RUN ls -la /app/build/
-RUN ls -la /app/build/static/ || echo "No static directory"
+# List contents to verify build (Vite outputs to dist folder)
+RUN ls -la /app/dist/
+RUN ls -la /app/dist/assets/ || echo "No assets directory"
 
 # Production stage
 FROM nginx:alpine
@@ -28,8 +30,8 @@ FROM nginx:alpine
 # Remove default nginx website
 RUN rm -rf /usr/share/nginx/html/*
 
-# Copy built app from build stage
-COPY --from=build /app/build /usr/share/nginx/html
+# Copy built app from build stage (Vite outputs to dist folder)
+COPY --from=build /app/dist /usr/share/nginx/html
 
 # Copy nginx configuration
 COPY nginx.conf /etc/nginx/conf.d/default.conf

@@ -77,6 +77,40 @@ public class InventoryService {
     }
     
     /**
+     * Confirms a previously made inventory reservation.
+     * This permanently reduces the inventory and should be called after successful order processing.
+     * 
+     * @param orderId the order ID for which to confirm the reservation
+     * @return true if successful, false otherwise
+     */
+    public boolean confirmInventoryReservation(Long orderId) {
+        logger.info("Attempting to confirm inventory reservation for order {}", orderId);
+        
+        try {
+            InventoryReservationResponse response = webClient
+                    .post()
+                    .uri(inventoryServiceUrl + "/api/inventory/confirm/" + orderId)
+                    .retrieve()
+                    .bodyToMono(InventoryReservationResponse.class)
+                    .timeout(Duration.ofMillis(timeoutMillis))
+                    .block();
+            
+            if (response != null && response.isSuccess()) {
+                logger.info("Inventory confirmation successful for order {}: {}", orderId, response.getMessage());
+                return true;
+            } else {
+                logger.warn("Inventory confirmation failed for order {}: {}", 
+                           orderId, response != null ? response.getMessage() : "Empty response");
+                return false;
+            }
+            
+        } catch (Exception e) {
+            logger.error("Error while confirming inventory reservation for order {}: {}", orderId, e.getMessage(), e);
+            return false;
+        }
+    }
+    
+    /**
      * Releases a previously made inventory reservation.
      * This is typically called when an order needs to be cancelled or rolled back.
      * 

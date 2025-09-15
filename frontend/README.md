@@ -1,158 +1,73 @@
-# Frontend - Sistema de E-commerce Distribuído
+# Welcome to your Lovable project
 
-Esta é a aplicação frontend em React.js do sistema de e-commerce distribuído.
+## Project info
 
-## Funcionalidades
+**URL**: https://lovable.dev/projects/d46f8365-b5b8-4fb0-be43-be8b3993f00d
 
-- Catálogo de produtos com informações detalhadas
-- Carrinho de compras com adição/remoção de itens
-- Formulário de checkout com dados do cliente
-- Comunicação com o Order Service via REST API
-- Interface responsiva e moderna
+## How can I edit this code?
 
-## Tecnologias
+There are several ways of editing your application.
 
-- React.js 18
-- Axios (para requisições HTTP)
-- CSS3 (estilização)
-- HTML5
+**Use Lovable**
 
-## Configuração
+Simply visit the [Lovable Project](https://lovable.dev/projects/d46f8365-b5b8-4fb0-be43-be8b3993f00d) and start prompting.
 
-### Variáveis de Ambiente
+Changes made via Lovable will be committed automatically to this repo.
 
-Crie um arquivo `.env` na raiz do diretório frontend:
+**Use your preferred IDE**
 
-```
-REACT_APP_ORDER_SERVICE_URL=http://IP_DA_MAQUINA_ORDER_SERVICE:8080
-```
+If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
 
-Substitua `IP_DA_MAQUINA_ORDER_SERVICE` pelo IP real da máquina que está executando o Order Service.
+The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
 
-### Desenvolvimento Local
+Follow these steps:
 
-1. Instalar dependências:
-```bash
-npm install
-```
+```sh
+# Step 1: Clone the repository using the project's Git URL.
+git clone <YOUR_GIT_URL>
 
-2. Executar em modo de desenvolvimento:
-```bash
-npm start
+# Step 2: Navigate to the project directory.
+cd <YOUR_PROJECT_NAME>
+
+# Step 3: Install the necessary dependencies.
+npm i
+
+# Step 4: Start the development server with auto-reloading and an instant preview.
+npm run dev
 ```
 
-O frontend estará disponível em `http://localhost:3000`
+**Edit a file directly in GitHub**
 
-### Build para Produção
+- Navigate to the desired file(s).
+- Click the "Edit" button (pencil icon) at the top right of the file view.
+- Make your changes and commit the changes.
 
-```bash
-npm run build
-```
+**Use GitHub Codespaces**
 
-## Deploy com Docker
+- Navigate to the main page of your repository.
+- Click on the "Code" button (green button) near the top right.
+- Select the "Codespaces" tab.
+- Click on "New codespace" to launch a new Codespace environment.
+- Edit files directly within the Codespace and commit and push your changes once you're done.
 
-### 1. Build da Imagem Docker
+## What technologies are used for this project?
 
-```bash
-docker build -t ecommerce-frontend .
-```
+This project is built with:
 
-### 2. Executar Container
+- Vite
+- TypeScript
+- React
+- shadcn-ui
+- Tailwind CSS
 
-```bash
-docker run -d \
-  --name ecommerce-frontend \
-  -p 3000:3000 \
-  -e REACT_APP_ORDER_SERVICE_URL=http://IP_ORDER_SERVICE:8080 \
-  ecommerce-frontend
-```
+## How can I deploy this project?
 
-### 3. Deploy em Máquina Separada
+Simply open [Lovable](https://lovable.dev/projects/d46f8365-b5b8-4fb0-be43-be8b3993f00d) and click on Share -> Publish.
 
-Para deploy em uma máquina dedicada:
+## Can I connect a custom domain to my Lovable project?
 
-1. Copie o diretório `frontend/` para a máquina
-2. Configure as variáveis de ambiente
-3. Execute os comandos Docker acima
-4. Certifique-se de que a porta 3000 está liberada no firewall
+Yes, you can!
 
-## Configuração de Rede
+To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
 
-Para que o frontend se comunique com o Order Service em outra máquina:
-
-1. **Configure o IP do Order Service** no arquivo `.env` ou variável de ambiente
-2. **Liberação de Portas**: Certifique-se de que a porta 8080 (Order Service) está acessível
-3. **CORS**: O Order Service deve permitir requisições do IP da máquina do frontend
-
-## Estrutura do Projeto
-
-```
-frontend/
-├── public/
-│   └── index.html          # HTML principal
-├── src/
-│   ├── App.js             # Componente principal
-│   ├── index.js           # Entry point
-│   └── index.css          # Estilos globais
-├── package.json           # Dependências e scripts
-├── Dockerfile            # Configuração Docker
-└── README.md             # Este arquivo
-```
-
-## Fluxo de Uso
-
-1. **Navegação**: Usuário visualiza catálogo de produtos
-2. **Carrinho**: Adiciona produtos ao carrinho
-3. **Checkout**: Preenche dados pessoais
-4. **Pedido**: Clica em "Finalizar Compra"
-5. **Processamento**: Frontend envia dados para Order Service
-6. **Resultado**: Exibe confirmação ou erro do pedido
-
-## Comunicação com Backend
-
-A aplicação se comunica com o Order Service através de:
-
-- **Endpoint**: `POST /api/orders`
-- **Formato**: JSON
-- **Protocolo**: HTTP sobre TCP
-- **Timeout**: 30 segundos
-
-### Exemplo de Payload
-
-```json
-{
-  "customerName": "João Silva",
-  "customerEmail": "joao@email.com",
-  "customerAddress": "Rua das Flores, 123",
-  "customerPhone": "(65) 99999-9999",
-  "items": [
-    {
-      "productId": 1,
-      "productName": "Smartphone Galaxy",
-      "quantity": 2,
-      "price": 899.99
-    }
-  ],
-  "totalAmount": 1799.98
-}
-```
-
-## Troubleshooting
-
-### Problema: Não consegue conectar ao Order Service
-
-**Solução**:
-1. Verifique se o Order Service está rodando
-2. Confirme o IP e porta no arquivo `.env`
-3. Teste conectividade: `telnet IP_ORDER_SERVICE 8080`
-4. Verifique configuração de CORS no backend
-
-### Problema: Erro 409 (Conflict) no checkout
-
-**Causa**: Produto indisponível em estoque
-**Solução**: Erro esperado quando não há estoque suficiente
-
-### Problema: Erro 503 (Service Unavailable)
-
-**Causa**: Inventory Service indisponível
-**Solução**: Verificar se o Inventory Service está funcionando
+Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
