@@ -43,8 +43,8 @@ const inventoryApi = {
         name: apiProduct.name,
         price: apiProduct.price,
         description: apiProduct.description,
-        image: '/placeholder.svg',
-        category: 'Electronics',
+        image: 'https://play-lh.googleusercontent.com/iOh1QkKnosytKTn1tMOxOJUjhfXFDdPTcANKFg0Ij6cvC-bnt0O3mbF-339bGR-Rx8c',
+        category: 'Eletrônicos',
         stock: apiProduct.availableQuantity || apiProduct.quantity || 0
       }));
     } catch (error) {
@@ -113,7 +113,7 @@ const Index = () => {
       setError(err instanceof Error ? err.message : 'Failed to load data');
       toast({
         title: "Error",
-        description: "Failed to load products. Please check if the services are running.",
+        description: "Erro em carregar os produtos. Por favor, confira o status dos serviços.",
         variant: "destructive",
       });
     } finally {
@@ -124,8 +124,8 @@ const Index = () => {
   const addToCart = (product: Product) => {
     if (product.stock <= 0) {
       toast({
-        title: "Out of Stock",
-        description: `${product.name} is currently out of stock.`,
+        title: "Esgotado",
+        description: `${product.name} está esgotado`,
         variant: "destructive",
       });
       return;
@@ -138,8 +138,8 @@ const Index = () => {
         const newQuantity = existingItem.quantity + 1;
         if (newQuantity > product.stock) {
           toast({
-            title: "Stock Limit",
-            description: `Only ${product.stock} units available.`,
+            title: "Estoque",
+            description: `Apenas ${product.stock} unidades disponíveis`,
             variant: "destructive",
           });
           return prev;
@@ -156,8 +156,8 @@ const Index = () => {
     });
 
     toast({
-      title: "Added to Cart",
-      description: `${product.name} added to cart.`,
+      title: "Adicionado ao Carrinho",
+      description: `${product.name} foi adicionado ao carrinho.`,
     });
   };
 
@@ -170,8 +170,8 @@ const Index = () => {
     const product = products.find(p => p.id === productId);
     if (product && quantity > product.stock) {
       toast({
-        title: "Stock Limit",
-        description: `Only ${product.stock} units available.`,
+        title: "Estoque",
+        description: `Apenas ${product.stock} unidades disponíveis`,
         variant: "destructive",
       });
       return;
@@ -189,8 +189,8 @@ const Index = () => {
     const product = products.find(p => p.id === productId);
     if (product) {
       toast({
-        title: "Removed from Cart",
-        description: `${product.name} removed from cart.`,
+        title: "Removido do Carrinho",
+        description: `${product.name} foi removido do carrinho`,
       });
     }
   };
@@ -198,8 +198,8 @@ const Index = () => {
   const handleCheckout = async (customerInfo: CustomerInfo) => {
     if (!servicesHealth.orderService) {
       toast({
-        title: "Service Unavailable",
-        description: "Order service is not available. Please try again later.",
+        title: "Serviço indisponível",
+        description: "'order-service' não está disponível. Por favor, tente novamente mais tarde",
         variant: "destructive",
       });
       return;
@@ -235,16 +235,16 @@ const Index = () => {
       setView('confirmation');
       
       toast({
-        title: "Order Confirmed",
-        description: `Order #${createdOrder.id} has been confirmed!`,
+        title: "Pedido confirmado!",
+        description: `O pedido #${createdOrder.id} foi confirmado!`,
       });
 
       // Refresh products to update stock
       await loadData();
     } catch (err) {
       toast({
-        title: "Order Failed",
-        description: "Failed to create order. Please try again.",
+        title: "Pedido negado.",
+        description: "Falha na criação de pedido. Por favor, tente novamente.",
         variant: "destructive",
       });
     }
@@ -263,7 +263,7 @@ const Index = () => {
       <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-cyan-50 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
-          <p className="text-lg text-gray-600">Loading products...</p>
+          <p className="text-lg text-gray-600">Carregando produtos...</p>
         </div>
       </div>
     );
@@ -284,7 +284,7 @@ const Index = () => {
                 <WifiOff className="h-4 w-4 text-red-500" />
               )}
               <span className={`text-sm ${servicesHealth.orderService ? 'text-green-600' : 'text-red-600'}`}>
-                Order Service
+                Serviço de Processamento
               </span>
             </div>
             <div className="flex items-center gap-2">
@@ -294,7 +294,7 @@ const Index = () => {
                 <WifiOff className="h-4 w-4 text-red-500" />
               )}
               <span className={`text-sm ${servicesHealth.inventoryService ? 'text-green-600' : 'text-red-600'}`}>
-                Inventory Service
+                Serviço de Inventário
               </span>
             </div>
           </div>
@@ -312,7 +312,7 @@ const Index = () => {
                 className="ml-4"
                 onClick={loadData}
               >
-                Retry
+                Tentar novamente
               </Button>
             </AlertDescription>
           </Alert>
@@ -331,7 +331,7 @@ const Index = () => {
               className="flex items-center gap-2"
             >
               <ArrowLeft className="h-4 w-4" />
-              Back
+              Voltar
             </Button>
           </div>
         )}
@@ -344,7 +344,7 @@ const Index = () => {
               className="relative bg-indigo-600 hover:bg-indigo-700"
             >
               <ShoppingCart className="h-5 w-5 mr-2" />
-              Cart
+              Carrinho
               {getTotalItems() > 0 && (
                 <Badge className="absolute -top-2 -right-2 bg-red-500">
                   {getTotalItems()}
