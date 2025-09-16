@@ -274,12 +274,6 @@ const Index = () => {
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-gray-800 mb-2">
-            Sistema de E-commerce Distribuído
-          </h1>
-          <p className="text-lg text-gray-600">
-            Microserviços em ação: Frontend, Order Service e Inventory Service
-          </p>
           
           {/* Services Status */}
           <div className="flex items-center justify-center gap-4 mt-4">

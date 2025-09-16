@@ -12,9 +12,9 @@ export const ProductCatalog = ({ products, onAddToCart }: ProductCatalogProps) =
   return (
     <div className="space-y-8">
       <div className="text-center">
-        <h1 className="text-4xl font-bold mb-4">Nossa Loja Virtual</h1>
+        <h1 className="text-4xl font-bold mb-4">TTA Store</h1>
         <p className="text-xl text-muted-foreground">
-          Descubra nossos produtos incríveis com os melhores preços
+          Discover our incredible products with the best prices on the market!
         </p>
       </div>
 
