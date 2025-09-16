@@ -3,7 +3,7 @@ export interface Product {
   name: string;
   price: number;
   description: string;
-  image: string;
+  image: "https://play-lh.googleusercontent.com/iOh1QkKnosytKTn1tMOxOJUjhfXFDdPTcANKFg0Ij6cvC-bnt0O3mbF-339bGR-Rx8c";
   category: string;
   stock: number;
 }
