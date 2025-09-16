@@ -14,8 +14,8 @@ COPY . .
 
 # Set environment variables for build
 ENV NODE_ENV=production
-ENV VITE_INVENTORY_SERVICE_URL=http://localhost:8081
-ENV VITE_ORDER_SERVICE_URL=http://localhost:8080
+ENV VITE_INVENTORY_SERVICE_URL=http://192.168.*.*:8081
+ENV VITE_ORDER_SERVICE_URL=http://192.168.*.*:8080
 
 # Build the application
 RUN npm run build
