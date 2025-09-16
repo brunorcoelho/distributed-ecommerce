@@ -14,7 +14,7 @@ export const ProductCatalog = ({ products, onAddToCart }: ProductCatalogProps) =
       <div className="text-center">
         <h1 className="text-4xl font-bold mb-4">TTA Store</h1>
         <p className="text-xl text-muted-foreground">
-          Discover our incredible products with the best prices on the market!
+          Descubra nossos produtos incríveis e aproveite ofertas exclusivas!
         </p>
       </div>
 
